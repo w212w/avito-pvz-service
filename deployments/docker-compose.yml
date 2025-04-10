@@ -1,0 +1,50 @@
+
+version: '3.8'
+
+services:
+  avito-pvz-service:
+      build:
+        context: ..
+        dockerfile: deployments/Dockerfile
+      container_name: avito-pvz-service
+      ports:
+        - "8080:8080"
+      environment:
+        - APP_ENV=docker
+        - DB_PORT=5432
+        - DB_USER=postgres
+        - DB_PASSWORD=postgres
+        - DB_NAME=pvz
+        - DB_HOST=db
+        - SERVER_PORT=8080
+      depends_on:
+        db:
+            condition: service_healthy
+      networks:
+        - internal
+  
+  db:
+    image: postgres:17
+    container_name: pvz_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pvz
+    volumes:
+      - ./../internal/db/migrations:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres -d pvz'"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - internal
+volumes:
+  postgres_data:
+
+networks:
+  internal:
