@@ -1,6 +1,8 @@
 package main
 
 import (
+	"avito-pvz-service/config"
+	"avito-pvz-service/internal/storage"
 	"log"
 	"net/http"
 
@@ -9,12 +11,12 @@ import (
 
 func main() {
 	cfg := config.LoadConfig()
-	// db := repository.ConnectDB(cfg)
-	// defer db.Close()
+	db := storage.ConnectDB(cfg)
+	defer db.Close()
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/auth", authHandler.Auth).Methods("POST")
+	// router.HandleFunc("/api/auth", authHandler.Auth).Methods("POST")
 
 	log.Println("Server started on :8080")
 
