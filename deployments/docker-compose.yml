@@ -31,7 +31,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: pvz
     volumes:
-      - ./../internal/db/migrations:/docker-entrypoint-initdb.d
+      - ./../internal/storage/migrations:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
