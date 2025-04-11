@@ -1,9 +1,13 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type PVZ struct {
-	ID               string    `json:"id"`
+	ID               uuid.UUID `json:"id"`
 	RegistrationDate time.Time `json:"registration_date"`
 	City             string    `json:"city"`
 }

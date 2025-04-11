@@ -1,10 +1,14 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Reception struct {
-	ID       string    `json:"id"`
-	PVZID    string    `json:"pvz_id"`
+	ID       uuid.UUID `json:"id"`
+	PVZID    uuid.UUID `json:"pvz_id"`
 	DateTime time.Time `json:"date_time"`
 	Status   string    `json:"status"`
 }
