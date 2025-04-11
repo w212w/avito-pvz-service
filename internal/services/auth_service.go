@@ -91,33 +91,3 @@ func (s *AuthService) generateToken(userID uuid.UUID, role string) (string, erro
 
 	return token.SignedString([]byte(s.secretKey))
 }
-
-func (s *AuthService) ParseToken(tokenString string) (uuid.UUID, string, error) {
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-		return []byte(s.secretKey), nil
-	})
-	if err != nil {
-		return uuid.Nil, "", err
-	}
-
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userIDStr, ok := claims["user_id"].(string)
-		if !ok {
-			return uuid.Nil, "", errors.New("invalid user_id format")
-		}
-
-		userID, err := uuid.Parse(userIDStr)
-		if err != nil {
-			return uuid.Nil, "", errors.New("user_id is not a valid UUID")
-		}
-
-		role, ok := claims["role"].(string)
-		if !ok {
-			return uuid.Nil, "", errors.New("invalid role format")
-		}
-
-		return userID, role, nil
-	}
-
-	return uuid.Nil, "", errors.New("invalid token")
-}
