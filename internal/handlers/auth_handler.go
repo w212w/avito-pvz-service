@@ -21,7 +21,6 @@ type registerRequest struct {
 }
 
 type registerResponse struct {
-	ID    string `json:"id"`
 	Email string `json:"email"`
 	Role  string `json:"role"`
 }
@@ -45,7 +44,6 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := registerResponse{
-		ID:    user.ID.String(),
 		Email: user.Email,
 		Role:  user.Role,
 	}
@@ -83,7 +81,41 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := tokenResponse{Token: token}
+
 	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "failed to encode response")
+	}
+}
+
+type dummyLoginRequest struct {
+	Role string `json:"role"`
+}
+
+func (h *AuthHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var req dummyLoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.Role != services.RoleEmployee && req.Role != services.RoleModerator {
+		writeJSONError(w, http.StatusBadRequest, "invalid role")
+		return
+	}
+
+	token, err := h.authService.DummyLogin(req.Role)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "failed to generate token")
+		return
+	}
+
+	resp := tokenResponse{Token: token}
+
+	w.WriteHeader(http.StatusOK)
+
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "failed to encode response")
 	}

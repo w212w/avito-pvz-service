@@ -23,7 +23,9 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.HandleFunc("/dummyLogin", authHandler.DummyLogin).Methods("POST")
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
+	router.HandleFunc("/login", authHandler.Login).Methods("POST")
 
 	log.Println("Server started on :8080")
 
