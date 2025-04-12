@@ -40,3 +40,7 @@ func (s *PVZService) CreatePVZ(city string) (*models.PVZ, error) {
 	}
 	return pvz, nil
 }
+
+func (s *PVZService) GetPVZList(startDate, endDate *time.Time, page, limit int) ([]models.PVZWithReceptions, error) {
+	return s.pvzRepo.FetchPVZWithReceptions(startDate, endDate, page, limit)
+}

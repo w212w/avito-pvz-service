@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type PVZHandler struct {
@@ -20,16 +22,17 @@ func NewPVZHandler(pvzService *services.PVZService) *PVZHandler {
 func (h *PVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctx := r.Context()
-	var pvzReq models.PVZ
-	err := json.NewDecoder(r.Body).Decode(&pvzReq)
-	if err != nil {
-		writeJSONError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
 
 	role, _ := ctx.Value(middleware.RoleKey).(string)
 	if role != services.RoleModerator {
 		writeJSONError(w, http.StatusForbidden, "access denied")
+		return
+	}
+
+	var pvzReq models.PVZ
+	err := json.NewDecoder(r.Body).Decode(&pvzReq)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -44,4 +47,75 @@ func (h *PVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(newPVZ); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "failed to encode pvz")
 	}
+}
+
+func (h *PVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	ctx := r.Context()
+
+	role, _ := ctx.Value(middleware.RoleKey).(string)
+	if role != services.RoleModerator && role != services.RoleEmployee {
+		writeJSONError(w, http.StatusForbidden, "access denied")
+		return
+	}
+
+	startDateStr := r.URL.Query().Get("startDate")
+	endDateStr := r.URL.Query().Get("endDate")
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	var (
+		startDate *time.Time
+		endDate   *time.Time
+	)
+
+	if startDateStr != "" {
+		startDateParsed, err := time.Parse(time.RFC3339, startDateStr)
+		if err != nil {
+			writeJSONError(w, http.StatusBadRequest, "invalid startDate")
+			return
+		}
+		startDate = &startDateParsed
+	}
+
+	if endDateStr != "" {
+		endDateParsed, err := time.Parse(time.RFC3339, endDateStr)
+		if err != nil {
+			writeJSONError(w, http.StatusBadRequest, "invalid endDate")
+			return
+		}
+		endDate = &endDateParsed
+	}
+
+	page := 1
+	limit := 10
+
+	if pageStr != "" {
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p < 1 {
+			writeJSONError(w, http.StatusBadRequest, "invalid page")
+			return
+		}
+		page = p
+	}
+
+	if limitStr != "" {
+		l, err := strconv.Atoi(limitStr)
+		if err != nil || l < 1 || l > 30 {
+			writeJSONError(w, http.StatusBadRequest, "invalid limit")
+			return
+		}
+		limit = l
+	}
+
+	pvzList, err := h.pvzService.GetPVZList(startDate, endDate, page, limit)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(pvzList); err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+	}
+
 }
