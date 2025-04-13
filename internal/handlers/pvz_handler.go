@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"avito-pvz-service/internal/middleware"
 	"avito-pvz-service/internal/models"
 	"avito-pvz-service/internal/services"
 	"encoding/json"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type PVZHandler struct {
@@ -23,13 +23,6 @@ func NewPVZHandler(pvzService *services.PVZService) *PVZHandler {
 
 func (h *PVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ctx := r.Context()
-
-	role, _ := ctx.Value(middleware.RoleKey).(string)
-	if role != services.RoleModerator {
-		writeJSONError(w, http.StatusForbidden, "access denied")
-		return
-	}
 
 	var pvzReq models.PVZ
 	err := json.NewDecoder(r.Body).Decode(&pvzReq)
@@ -53,13 +46,6 @@ func (h *PVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
 
 func (h *PVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ctx := r.Context()
-
-	role, _ := ctx.Value(middleware.RoleKey).(string)
-	if role != services.RoleModerator && role != services.RoleEmployee {
-		writeJSONError(w, http.StatusForbidden, "access denied")
-		return
-	}
 
 	startDateStr := r.URL.Query().Get("startDate")
 	endDateStr := r.URL.Query().Get("endDate")
@@ -125,13 +111,6 @@ func (h *PVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
 func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	ctx := r.Context()
-	role, _ := ctx.Value(middleware.RoleKey).(string)
-	if role != services.RoleEmployee {
-		writeJSONError(w, http.StatusForbidden, "access denied")
-		return
-	}
-
 	var req struct {
 		PVZID uuid.UUID `json:"pvzId"`
 	}
@@ -159,13 +138,6 @@ func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
 
 func (h *PVZHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ctx := r.Context()
-
-	role, _ := ctx.Value(middleware.RoleKey).(string)
-	if role != services.RoleEmployee {
-		writeJSONError(w, http.StatusForbidden, "access denied from handler")
-		return
-	}
 
 	var req AddProductRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -191,4 +163,59 @@ func (h *PVZHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 type AddProductRequest struct {
 	Type  string    `json:"type"`
 	PVZID uuid.UUID `json:"pvzId"`
+}
+
+func (h *PVZHandler) CloseLastReception(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	vars := mux.Vars(r)
+	pvzIdStr := vars["pvzId"]
+	if pvzIdStr == "" {
+		writeJSONError(w, http.StatusBadRequest, "pvzId parameter is required")
+		return
+	}
+
+	pvzId, err := uuid.Parse(pvzIdStr)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	reception, err := h.pvzService.CloseLastReception(pvzId)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request or reception closed")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(reception); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "failed to encode reception")
+	}
+
+}
+
+func (h *PVZHandler) DeleteLastProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	vars := mux.Vars(r)
+	pvzIdStr := vars["pvzId"]
+	if pvzIdStr == "" {
+		writeJSONError(w, http.StatusBadRequest, "pvzId parameter is required")
+		return
+	}
+
+	pvzId, err := uuid.Parse(pvzIdStr)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	err = h.pvzService.DeleteLastProduct(pvzId)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request")
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+
 }

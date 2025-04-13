@@ -90,3 +90,41 @@ func (s *PVZService) AddProduct(prodType string, pvzID uuid.UUID) (*models.Produ
 
 	return product, nil
 }
+
+func (s *PVZService) CloseLastReception(pvzID uuid.UUID) (*models.Reception, error) {
+	reception, err := s.pvzRepo.GetLastReception(pvzID)
+	if err != nil {
+		return nil, err
+	}
+
+	if reception.Status == "close" {
+		return nil, errors.New("reception already closed")
+	}
+
+	reception.Status = "close"
+
+	err = s.pvzRepo.UpdateReceptionStatus(reception.ID, "close")
+	if err != nil {
+		return nil, err
+	}
+	return reception, nil
+
+}
+
+func (s *PVZService) DeleteLastProduct(pvzID uuid.UUID) error {
+	reception, err := s.pvzRepo.GetLastReception(pvzID)
+	if err != nil {
+		return err
+	}
+
+	if reception.Status != "in_progress" {
+		return errors.New("reception is not in progress")
+	}
+
+	product, err := s.pvzRepo.GetLastProduct(reception.ID)
+	if err != nil {
+		return err
+	}
+
+	return s.pvzRepo.DeleteProduct(product.ID)
+}

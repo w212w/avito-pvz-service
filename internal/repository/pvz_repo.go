@@ -18,6 +18,10 @@ type PVZRepoInterface interface {
 	HasOpenReception(pvzID uuid.UUID) (bool, error)
 	CreateProduct(p *models.Product) error
 	GetActiveReception(pvzID uuid.UUID) (*models.Reception, error)
+	GetLastReception(pvzID uuid.UUID) (*models.Reception, error)
+	UpdateReceptionStatus(receptionID uuid.UUID, status string) error
+	GetLastProduct(receptionID uuid.UUID) (*models.Product, error)
+	DeleteProduct(productID uuid.UUID) error
 }
 
 type PVZRepo struct {
@@ -143,4 +147,42 @@ func (r *PVZRepo) GetActiveReception(pvzID uuid.UUID) (*models.Reception, error)
 		return nil, err
 	}
 	return &reception, nil
+}
+
+func (r *PVZRepo) GetLastReception(pvzID uuid.UUID) (*models.Reception, error) {
+	var reception models.Reception
+	query := `SELECT id, date_time, pvz_id, status FROM receptions WHERE pvz_id = $1 AND status = 'in_progress' LIMIT 1`
+	err := r.db.Get(&reception, query, pvzID)
+	if err != nil {
+		return nil, err
+	}
+	return &reception, nil
+}
+
+func (r *PVZRepo) UpdateReceptionStatus(receptionID uuid.UUID, status string) error {
+	query := `UPDATE receptions SET status = $1 WHERE id = $2`
+	_, err := r.db.Exec(query, status, receptionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *PVZRepo) GetLastProduct(receptionID uuid.UUID) (*models.Product, error) {
+	product := models.Product{}
+	query := `SELECT * FROM products WHERE reception_id = $1 ORDER BY date_time DESC LIMIT 1`
+	err := r.db.Get(&product, query, receptionID)
+	if err != nil {
+		return nil, err
+	}
+	return &product, nil
+}
+
+func (r *PVZRepo) DeleteProduct(productID uuid.UUID) error {
+	query := `DELETE FROM products WHERE id = $1`
+	_, err := r.db.Exec(query, productID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
