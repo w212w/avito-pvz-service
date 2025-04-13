@@ -35,6 +35,7 @@ func main() {
 	router.Handle("/pvz", middleware.AuthMiddleware(cfg.JWTSecret, services.RoleModerator)(http.HandlerFunc(pvzHandler.CreatePVZ))).Methods("POST")
 	router.Handle("/pvz", middleware.AuthMiddleware(cfg.JWTSecret, services.RoleModerator, services.RoleEmployee)(http.HandlerFunc(pvzHandler.GetPVZList))).Methods("GET")
 	router.Handle("/receptions", middleware.AuthMiddleware(cfg.JWTSecret, services.RoleEmployee)(http.HandlerFunc(pvzHandler.CreateReception))).Methods("POST")
+	router.Handle("/products", middleware.AuthMiddleware(cfg.JWTSecret, services.RoleEmployee)(http.HandlerFunc(pvzHandler.AddProduct))).Methods("POST")
 
 	log.Println("Server started on :8080")
 

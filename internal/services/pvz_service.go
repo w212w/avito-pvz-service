@@ -70,3 +70,23 @@ func (s *PVZService) CreateReception(pvzID uuid.UUID) (*models.Reception, error)
 
 	return reception, nil
 }
+
+func (s *PVZService) AddProduct(prodType string, pvzID uuid.UUID) (*models.Product, error) {
+	reception, err := s.pvzRepo.GetActiveReception(pvzID)
+	if err != nil {
+		return nil, errors.New("no active reception")
+	}
+
+	product := &models.Product{
+		ID:          uuid.New(),
+		DateTime:    time.Now().UTC(),
+		Type:        prodType,
+		ReceptionID: reception.ID,
+	}
+
+	if err := s.pvzRepo.CreateProduct(product); err != nil {
+		return nil, err
+	}
+
+	return product, nil
+}

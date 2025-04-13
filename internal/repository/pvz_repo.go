@@ -16,6 +16,8 @@ type PVZRepoInterface interface {
 	FetchPVZWithReceptions(startDate, endDate *time.Time, page, limit int) ([]models.PVZWithReceptions, error)
 	CreateReception(rec *models.Reception) error
 	HasOpenReception(pvzID uuid.UUID) (bool, error)
+	CreateProduct(p *models.Product) error
+	GetActiveReception(pvzID uuid.UUID) (*models.Reception, error)
 }
 
 type PVZRepo struct {
@@ -122,4 +124,23 @@ func (r *PVZRepo) HasOpenReception(pvzID uuid.UUID) (bool, error) {
 		return false, fmt.Errorf("failed to check open receptions: %w", err)
 	}
 	return count > 0, nil
+}
+
+func (r *PVZRepo) CreateProduct(p *models.Product) error {
+	query := `INSERT INTO products (id, date_time, type, reception_id) VALUES ($1, $2, $3, $4)`
+	_, err := r.db.Exec(query, p.ID, p.DateTime, p.Type, p.ReceptionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *PVZRepo) GetActiveReception(pvzID uuid.UUID) (*models.Reception, error) {
+	var reception models.Reception
+	query := `SELECT id, date_time, pvz_id, status FROM receptions WHERE pvz_id = $1 AND status = 'in_progress' LIMIT 1`
+	err := r.db.Get(&reception, query, pvzID)
+	if err != nil {
+		return nil, err
+	}
+	return &reception, nil
 }

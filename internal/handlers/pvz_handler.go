@@ -127,7 +127,7 @@ func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	role, _ := ctx.Value(middleware.RoleKey).(string)
-	if role != services.RoleModerator && role != services.RoleEmployee {
+	if role != services.RoleEmployee {
 		writeJSONError(w, http.StatusForbidden, "access denied")
 		return
 	}
@@ -155,4 +155,40 @@ func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(reception); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "failed to encode reception")
 	}
+}
+
+func (h *PVZHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	ctx := r.Context()
+
+	role, _ := ctx.Value(middleware.RoleKey).(string)
+	if role != services.RoleEmployee {
+		writeJSONError(w, http.StatusForbidden, "access denied from handler")
+		return
+	}
+
+	var req AddProductRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	product, err := h.pvzService.AddProduct(req.Type, req.PVZID)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request body or no reception")
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+
+	if err := json.NewEncoder(w).Encode(product); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "failed to encode product")
+	}
+
+}
+
+type AddProductRequest struct {
+	Type  string    `json:"type"`
+	PVZID uuid.UUID `json:"pvzId"`
 }
