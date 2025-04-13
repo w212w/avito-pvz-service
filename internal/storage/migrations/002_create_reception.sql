@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS receptions (
     id UUID NOT NULL PRIMARY KEY,
-    pvz_Id UUID NOT NULL REFERENCES pvz(id) ON DELETE CASCADE,
+    pvz_id UUID NOT NULL REFERENCES pvz(id) ON DELETE CASCADE,
     date_time TIMESTAMP NOT NULL DEFAULT NOW(),
-    status TEXT NOT NULL CHECK (status IN ('in_progres', 'close'))
+    status TEXT NOT NULL CHECK (status IN ('in_progress', 'close'))
 );
 

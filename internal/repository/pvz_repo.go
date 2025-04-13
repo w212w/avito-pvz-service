@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type PVZRepoInterface interface {
 	CreatePVZ(pvz *models.PVZ) error
 	FetchPVZWithReceptions(startDate, endDate *time.Time, page, limit int) ([]models.PVZWithReceptions, error)
+	CreateReception(rec *models.Reception) error
+	HasOpenReception(pvzID uuid.UUID) (bool, error)
 }
 
 type PVZRepo struct {
@@ -94,4 +97,29 @@ func (r *PVZRepo) FetchPVZWithReceptions(startDate, endDate *time.Time, page, li
 	}
 
 	return result, nil
+}
+
+func (r *PVZRepo) CreateReception(rec *models.Reception) error {
+	query := `
+		INSERT INTO receptions (id, pvz_id, date_time, status)
+		VALUES ($1, $2, $3, $4)
+	`
+	_, err := r.db.Exec(query, rec.ID, rec.PVZID, rec.DateTime, rec.Status)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *PVZRepo) HasOpenReception(pvzID uuid.UUID) (bool, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) FROM receptions
+		WHERE pvz_id = $1 AND status = 'in_progress'
+	`
+	err := r.db.Get(&count, query, pvzID)
+	if err != nil {
+		return false, fmt.Errorf("failed to check open receptions: %w", err)
+	}
+	return count > 0, nil
 }

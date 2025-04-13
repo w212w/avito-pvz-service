@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type PVZHandler struct {
@@ -118,4 +120,39 @@ func (h *PVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 	}
 
+}
+
+func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx := r.Context()
+	role, _ := ctx.Value(middleware.RoleKey).(string)
+	if role != services.RoleModerator && role != services.RoleEmployee {
+		writeJSONError(w, http.StatusForbidden, "access denied")
+		return
+	}
+
+	var req struct {
+		PVZID uuid.UUID `json:"pvzId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	reception, err := h.pvzService.CreateReception(req.PVZID)
+
+	if err != nil {
+		if err == services.ErrReceptionExists {
+			writeJSONError(w, http.StatusBadRequest, "reception already in progress")
+			return
+		}
+		writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("Error creating reception: %s", err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(reception); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "failed to encode reception")
+	}
 }
