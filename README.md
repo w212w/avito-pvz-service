@@ -11,9 +11,9 @@ git clone https://github.com/w212w/avito-pvz-service.git
 ```
 
 ### 2. Настройка конфигурации
-- Корневая директория - avito-pvz-service.
+- Корневая директория - avito-pvz-service
 - docker-compose.yml и Dockerfile расположен в avito-pvz-service/deployments
-- База данных развертывается с помощью Docker Compose, создавать отдельный .env файл в корневой директории не обязательно. Будут использоваться параметры из config/config.go либо docker-compose.yml. Пример используемых параметров приведен ниже.
+- База данных развертывается с помощью Docker Compose, создавать отдельный .env файл в корневой директории не обязательно. Будут использоваться параметры из config/config.go либо docker-compose.yml. Пример используемых параметров приведен ниже
 
 
 ```bash
