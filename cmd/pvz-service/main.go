@@ -55,27 +55,23 @@ func main() {
 	}()
 
 	go func() {
-		// Слушаем на порту 3000
+		
 		lis, err := net.Listen("tcp", ":3000")
 		if err != nil {
 			logger.Log.WithError(err).Fatal("Listening on :3000 failed")
 		}
 
-		// Создаем gRPC сервер
 		grpcServer := grpc.NewServer()
 
-		// Регистрируем gRPC сервис
 		pb.RegisterPVZServiceServer(grpcServer, pb.NewGRPCServer(pvzService))
 
 		logger.Log.Info("gRPC server listening on :3000")
 
-		// Запускаем gRPC сервер
 		if err := grpcServer.Serve(lis); err != nil {
 			logger.Log.WithError(err).Fatal("GRPC Server failed")
 		}
 	}()
 
-	// Ожидаем завершения работы сервера
 	select {}
 
 }
