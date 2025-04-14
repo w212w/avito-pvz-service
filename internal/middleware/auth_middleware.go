@@ -22,7 +22,7 @@ func AuthMiddleware(secretKey string, requiredRole ...string) func(http.Handler)
 
 			tokenStr, err := extractTokenFromHeader(r)
 			if err != nil {
-				writeJSONError(w, http.StatusForbidden, "acces denied 1")
+				writeJSONError(w, http.StatusForbidden, "acces denied")
 				return
 			}
 
@@ -31,19 +31,19 @@ func AuthMiddleware(secretKey string, requiredRole ...string) func(http.Handler)
 				return []byte(secretKey), nil
 			})
 			if err != nil || !token.Valid {
-				writeJSONError(w, http.StatusForbidden, "acces denied 2")
+				writeJSONError(w, http.StatusForbidden, "acces denied")
 				return
 			}
 
 			role, ok := claims["role"].(string)
 			if !ok {
-				writeJSONError(w, http.StatusForbidden, "acces denied 3")
+				writeJSONError(w, http.StatusForbidden, "acces denied")
 				return
 			}
 
 			if len(requiredRole) > 0 {
 				if !slices.Contains(requiredRole, role) {
-					writeJSONError(w, http.StatusForbidden, "access denied from middleware")
+					writeJSONError(w, http.StatusForbidden, "access denied")
 					return
 				}
 			}

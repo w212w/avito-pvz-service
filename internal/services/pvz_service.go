@@ -1,6 +1,7 @@
 package services
 
 import (
+	pr "avito-pvz-service/internal/metrics"
 	"avito-pvz-service/internal/models"
 	"avito-pvz-service/internal/repository"
 	"errors"
@@ -48,6 +49,9 @@ func (s *pvzService) CreatePVZ(city string) (*models.PVZ, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	pr.IncrementPVZCreated()
+
 	return pvz, nil
 }
 
@@ -77,6 +81,7 @@ func (s *pvzService) CreateReception(pvzID uuid.UUID) (*models.Reception, error)
 		return nil, err
 	}
 
+	pr.IncrementReceptionCreated()
 	return reception, nil
 }
 
@@ -97,6 +102,7 @@ func (s *pvzService) AddProduct(prodType string, pvzID uuid.UUID) (*models.Produ
 		return nil, err
 	}
 
+	pr.IncrementProductAdded()
 	return product, nil
 }
 

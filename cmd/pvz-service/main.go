@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -30,6 +31,7 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.Handle("/metrics", promhttp.Handler())
 	router.HandleFunc("/dummyLogin", authHandler.DummyLogin).Methods("POST")
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
 	router.HandleFunc("/login", authHandler.Login).Methods("POST")

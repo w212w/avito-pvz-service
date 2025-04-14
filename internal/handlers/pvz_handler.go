@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	pr "avito-pvz-service/internal/metrics"
 	"avito-pvz-service/internal/models"
 	"avito-pvz-service/internal/services"
 	logger "avito-pvz-service/pkg"
@@ -23,6 +24,13 @@ func NewPVZHandler(pvzService services.PVZService) *PVZHandler {
 }
 
 func (h *PVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	status := "201"
+	defer func() {
+		duration := time.Since(start)
+		pr.LogRequestDuration(r.Method, duration)
+		pr.LogRequestCount(r.Method, status)
+	}()
 	logger.Log.Info("handler /pvz POST started")
 	w.Header().Set("Content-Type", "application/json")
 
@@ -112,6 +120,13 @@ func (h *PVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	status := "201"
+	defer func() {
+		duration := time.Since(start)
+		pr.LogRequestDuration(r.Method, duration)
+		pr.LogRequestCount(r.Method, status)
+	}()
 	logger.Log.Info("handler /receptions started")
 	w.Header().Set("Content-Type", "application/json")
 
@@ -146,6 +161,13 @@ func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PVZHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	status := "201"
+	defer func() {
+		duration := time.Since(start)
+		pr.LogRequestDuration(r.Method, duration)
+		pr.LogRequestCount(r.Method, status)
+	}()
 	logger.Log.Info("handler /products started")
 	w.Header().Set("Content-Type", "application/json")
 
