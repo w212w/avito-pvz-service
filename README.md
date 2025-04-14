@@ -59,13 +59,15 @@ ok      avito-pvz-service/internal/services     1.543s  coverage: 79.5% of state
 ok      avito-pvz-service/tests/integration     1.113s  coverage: [no statements]<br>
 
 Тесты расположены в следующих директориях:
-- avito-shop-service/internal/service
-- avito-shop-service/internal/handlers
-- avito-shop-service/tests/integration
+- avito-pvz-service/internal/service
+- avito-pvz-service/internal/handlers
+- avito-pvz-service/tests/integration
 
 
-### 6. Prometheus, GRPC
+### 6. Prometheus, GRPC, логирование, кодогенерация DTO endpoint'ов
 
 - Запускаются в docker-compose
 - GRPC файлы расположены в директории avito-pvz-service/internal/grpc
 - Prometheus файлы расположены в директории avito-pvz-service/internal/metrics
+- Логирование осуществляется посредством "logrus" в директории avito-pvz-service/pkg
+- Кодогенерация DTO endpoint'ов расположена в директории avito-pvz-service/api/gen
