@@ -14,12 +14,13 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	JWTSecret  string
+	LogLevel   string
 }
 
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file")
+		log.Println("Invalid or no .env file")
 	}
 
 	appEnv := getEnv("APP_ENV", "local")
@@ -33,6 +34,7 @@ func LoadConfig() *Config {
 			DBPassword: getEnv("DB_PASSWORD", "postgres"),
 			DBName:     getEnv("DB_NAME", "pvz"),
 			JWTSecret:  getEnv("JWT_SECRET", "supersecretkey"),
+			LogLevel:   getEnv("LogLevel", "info"),
 		}
 	}
 
@@ -43,6 +45,7 @@ func LoadConfig() *Config {
 		DBPassword: getEnv("DB_PASSWORD", "postgres"),
 		DBName:     getEnv("DB_NAME", "pvz"),
 		JWTSecret:  getEnv("JWT_SECRET", "supersecretkey"),
+		LogLevel:   getEnv("LogLevel", "info"),
 	}
 }
 

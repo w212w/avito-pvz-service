@@ -3,6 +3,7 @@ package handlers
 import (
 	"avito-pvz-service/internal/models"
 	"avito-pvz-service/internal/services"
+	logger "avito-pvz-service/pkg"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,14 +15,15 @@ import (
 )
 
 type PVZHandler struct {
-	pvzService *services.PVZService
+	pvzService services.PVZService
 }
 
-func NewPVZHandler(pvzService *services.PVZService) *PVZHandler {
+func NewPVZHandler(pvzService services.PVZService) *PVZHandler {
 	return &PVZHandler{pvzService: pvzService}
 }
 
 func (h *PVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /pvz POST started")
 	w.Header().Set("Content-Type", "application/json")
 
 	var pvzReq models.PVZ
@@ -45,6 +47,7 @@ func (h *PVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /pvz GET started")
 	w.Header().Set("Content-Type", "application/json")
 
 	startDateStr := r.URL.Query().Get("startDate")
@@ -109,12 +112,18 @@ func (h *PVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /receptions started")
 	w.Header().Set("Content-Type", "application/json")
 
 	var req struct {
 		PVZID uuid.UUID `json:"pvzId"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.PVZID == uuid.Nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
@@ -137,6 +146,7 @@ func (h *PVZHandler) CreateReception(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PVZHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /products started")
 	w.Header().Set("Content-Type", "application/json")
 
 	var req AddProductRequest
@@ -166,6 +176,7 @@ type AddProductRequest struct {
 }
 
 func (h *PVZHandler) CloseLastReception(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /pvz/{pvzId}/close_last_reception started")
 	w.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(r)
@@ -196,6 +207,7 @@ func (h *PVZHandler) CloseLastReception(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *PVZHandler) DeleteLastProduct(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /pvz/{pvzId}/delete_last_product started")
 	w.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(r)

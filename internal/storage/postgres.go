@@ -2,9 +2,9 @@ package storage
 
 import (
 	"avito-pvz-service/config"
+	logger "avito-pvz-service/pkg"
 	"database/sql"
 	"fmt"
-	"log"
 
 	_ "github.com/lib/pq"
 )
@@ -17,14 +17,13 @@ func ConnectDB(cfg *config.Config) *sql.DB {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("Error connecting to DB:", err)
+		logger.Log.Fatalf("Error connecting to DB: %v", err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatal("DB is not reachable:", err)
+		logger.Log.Fatalf("DB is not reachable: %v", err)
 	}
-
-	log.Println("Connected to the database")
+	logger.Log.Info("Connected to the database")
 	return db
 }

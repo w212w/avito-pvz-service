@@ -7,7 +7,7 @@ import (
 	"avito-pvz-service/internal/repository"
 	"avito-pvz-service/internal/services"
 	"avito-pvz-service/internal/storage"
-	"log"
+	logger "avito-pvz-service/pkg"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -15,6 +15,8 @@ import (
 
 func main() {
 	cfg := config.LoadConfig()
+	logger.InitLogger(cfg.LogLevel)
+
 	db := storage.ConnectDB(cfg)
 	defer db.Close()
 
@@ -23,8 +25,8 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	pvzRepo := repository.NewPVZRepo(db)
-	pvzSerice := services.NewPVZService(pvzRepo)
-	pvzHandler := handlers.NewPVZHandler(pvzSerice)
+	pvzService := services.NewPVZService(pvzRepo)
+	pvzHandler := handlers.NewPVZHandler(pvzService)
 
 	router := mux.NewRouter()
 
@@ -38,10 +40,10 @@ func main() {
 	router.Handle("/products", middleware.AuthMiddleware(cfg.JWTSecret, services.RoleEmployee)(http.HandlerFunc(pvzHandler.AddProduct))).Methods("POST")
 	router.Handle("/pvz/{pvzId}/close_last_reception", middleware.AuthMiddleware(cfg.JWTSecret, services.RoleEmployee)(http.HandlerFunc(pvzHandler.CloseLastReception))).Methods("POST")
 	router.Handle("/pvz/{pvzId}/delete_last_product", middleware.AuthMiddleware(cfg.JWTSecret, services.RoleEmployee)(http.HandlerFunc(pvzHandler.DeleteLastProduct))).Methods("POST")
-	log.Println("Server started on :8080")
+	logger.Log.Info("Server is starting on :8080")
 
 	if err := http.ListenAndServe(":8080", router); err != nil {
-		log.Fatalf("Server failed: %v", err)
+		logger.Log.WithError(err).Fatal("Server failed")
 	}
 
 }

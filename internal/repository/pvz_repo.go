@@ -151,7 +151,7 @@ func (r *PVZRepo) GetActiveReception(pvzID uuid.UUID) (*models.Reception, error)
 
 func (r *PVZRepo) GetLastReception(pvzID uuid.UUID) (*models.Reception, error) {
 	var reception models.Reception
-	query := `SELECT id, date_time, pvz_id, status FROM receptions WHERE pvz_id = $1 AND status = 'in_progress' LIMIT 1`
+	query := `SELECT id, date_time, pvz_id, status FROM receptions WHERE pvz_id = $1 ORDER BY date_time DESC LIMIT 1`
 	err := r.db.Get(&reception, query, pvzID)
 	if err != nil {
 		return nil, err

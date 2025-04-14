@@ -16,16 +16,23 @@ const (
 	RoleModerator = "moderator"
 )
 
-type AuthService struct {
+type AuthService interface {
+	DummyLogin(role string) (string, error)
+	Login(email, password string) (string, error)
+	Register(email, password, role string) (*models.User, error)
+	GenerateToken(userID uuid.UUID, role string) (string, error)
+}
+
+type authService struct {
 	userRepo  repository.UserRepoInterface
 	secretKey string
 }
 
-func NewAuthService(userRepo repository.UserRepoInterface, secretKey string) *AuthService {
-	return &AuthService{userRepo: userRepo, secretKey: secretKey}
+func NewAuthService(userRepo repository.UserRepoInterface, secretKey string) AuthService {
+	return &authService{userRepo: userRepo, secretKey: secretKey}
 }
 
-func (s *AuthService) Register(email, password, role string) (*models.User, error) {
+func (s *authService) Register(email, password, role string) (*models.User, error) {
 	if role != RoleEmployee && role != RoleModerator {
 		return nil, errors.New("invalid role")
 	}
@@ -50,7 +57,7 @@ func (s *AuthService) Register(email, password, role string) (*models.User, erro
 
 }
 
-func (s *AuthService) Login(email, password string) (string, error) {
+func (s *authService) Login(email, password string) (string, error) {
 	if email == "" || password == "" {
 		return "", errors.New("empty email or password")
 	}
@@ -70,19 +77,19 @@ func (s *AuthService) Login(email, password string) (string, error) {
 		return "", errors.New("invalid password")
 	}
 
-	return s.generateToken(user.ID, user.Role)
+	return s.GenerateToken(user.ID, user.Role)
 }
 
-func (s *AuthService) DummyLogin(role string) (string, error) {
+func (s *authService) DummyLogin(role string) (string, error) {
 	if role != RoleEmployee && role != RoleModerator {
 		return "", errors.New("invalid role")
 	}
 
 	dummyID := uuid.New()
-	return s.generateToken(dummyID, role)
+	return s.GenerateToken(dummyID, role)
 }
 
-func (s *AuthService) generateToken(userID uuid.UUID, role string) (string, error) {
+func (s *authService) GenerateToken(userID uuid.UUID, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID.String(),
 		"role":    role,
@@ -90,4 +97,9 @@ func (s *AuthService) generateToken(userID uuid.UUID, role string) (string, erro
 	})
 
 	return token.SignedString([]byte(s.secretKey))
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
 }

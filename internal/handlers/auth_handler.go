@@ -2,15 +2,16 @@ package handlers
 
 import (
 	"avito-pvz-service/internal/services"
+	logger "avito-pvz-service/pkg"
 	"encoding/json"
 	"net/http"
 )
 
 type AuthHandler struct {
-	authService *services.AuthService
+	authService services.AuthService
 }
 
-func NewAuthHandler(authService *services.AuthService) *AuthHandler {
+func NewAuthHandler(authService services.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
@@ -30,6 +31,7 @@ type errorResponse struct {
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /register started")
 	w.Header().Set("Content-Type", "application/json")
 	var req registerRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -66,6 +68,7 @@ type tokenResponse struct {
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /login started")
 	w.Header().Set("Content-Type", "application/json")
 
 	var req loginRequest
@@ -94,6 +97,7 @@ type dummyLoginRequest struct {
 }
 
 func (h *AuthHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
+	logger.Log.Info("handler /dummyLogin started")
 	w.Header().Set("Content-Type", "application/json")
 	var req dummyLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

@@ -10,15 +10,24 @@ import (
 	"github.com/google/uuid"
 )
 
-type PVZService struct {
+type PVZService interface {
+	CreatePVZ(city string) (*models.PVZ, error)
+	GetPVZList(startDate, endDate *time.Time, page, limit int) ([]models.PVZWithReceptions, error)
+	CreateReception(pvzID uuid.UUID) (*models.Reception, error)
+	AddProduct(prodType string, pvzID uuid.UUID) (*models.Product, error)
+	CloseLastReception(pvzID uuid.UUID) (*models.Reception, error)
+	DeleteLastProduct(pvzID uuid.UUID) error
+}
+
+type pvzService struct {
 	pvzRepo repository.PVZRepoInterface
 }
 
-func NewPVZService(pvzRepo repository.PVZRepoInterface) *PVZService {
-	return &PVZService{pvzRepo: pvzRepo}
+func NewPVZService(pvzRepo repository.PVZRepoInterface) PVZService {
+	return &pvzService{pvzRepo: pvzRepo}
 }
 
-func (s *PVZService) CreatePVZ(city string) (*models.PVZ, error) {
+func (s *pvzService) CreatePVZ(city string) (*models.PVZ, error) {
 
 	validCities := map[string]bool{
 		"Москва":          true,
@@ -42,13 +51,13 @@ func (s *PVZService) CreatePVZ(city string) (*models.PVZ, error) {
 	return pvz, nil
 }
 
-func (s *PVZService) GetPVZList(startDate, endDate *time.Time, page, limit int) ([]models.PVZWithReceptions, error) {
+func (s *pvzService) GetPVZList(startDate, endDate *time.Time, page, limit int) ([]models.PVZWithReceptions, error) {
 	return s.pvzRepo.FetchPVZWithReceptions(startDate, endDate, page, limit)
 }
 
 var ErrReceptionExists = errors.New("reception already exists")
 
-func (s *PVZService) CreateReception(pvzID uuid.UUID) (*models.Reception, error) {
+func (s *pvzService) CreateReception(pvzID uuid.UUID) (*models.Reception, error) {
 	exists, err := s.pvzRepo.HasOpenReception(pvzID)
 	if err != nil {
 		return nil, err
@@ -71,7 +80,7 @@ func (s *PVZService) CreateReception(pvzID uuid.UUID) (*models.Reception, error)
 	return reception, nil
 }
 
-func (s *PVZService) AddProduct(prodType string, pvzID uuid.UUID) (*models.Product, error) {
+func (s *pvzService) AddProduct(prodType string, pvzID uuid.UUID) (*models.Product, error) {
 	reception, err := s.pvzRepo.GetActiveReception(pvzID)
 	if err != nil {
 		return nil, errors.New("no active reception")
@@ -91,7 +100,7 @@ func (s *PVZService) AddProduct(prodType string, pvzID uuid.UUID) (*models.Produ
 	return product, nil
 }
 
-func (s *PVZService) CloseLastReception(pvzID uuid.UUID) (*models.Reception, error) {
+func (s *pvzService) CloseLastReception(pvzID uuid.UUID) (*models.Reception, error) {
 	reception, err := s.pvzRepo.GetLastReception(pvzID)
 	if err != nil {
 		return nil, err
@@ -111,7 +120,7 @@ func (s *PVZService) CloseLastReception(pvzID uuid.UUID) (*models.Reception, err
 
 }
 
-func (s *PVZService) DeleteLastProduct(pvzID uuid.UUID) error {
+func (s *pvzService) DeleteLastProduct(pvzID uuid.UUID) error {
 	reception, err := s.pvzRepo.GetLastReception(pvzID)
 	if err != nil {
 		return err
