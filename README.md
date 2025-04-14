@@ -37,10 +37,10 @@ DB_NAME=shop
 JWT_SECRET=supersecretkey
 LOG_LEVEL=debug
 ```
-### 3. Запуск базы данных с Docker Compose
-Для развертывания базы данных используйте Docker Compose:
+### 3. Развертывание с Docker Compose
+Для развертывания сервиса, базы данных, prometheus в контейнерах используйте Docker Compose:
 ```bash
-docker-compose up -d db
+docker-compose up -d
 ```
 ### 4. Применение миграций
 При запуске приложения миграции для создания таблиц в базе данных будут применены автоматически. 
