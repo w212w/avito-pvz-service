@@ -1,6 +1,6 @@
 # Инструкция по запуску приложения
 
-## Стек - Go, PostgreSQL, Docker
+## Стек - Go, PostgreSQL, Docker, GRPC, Prometheus
 
 ### 1. Клонирование репозитория
 
