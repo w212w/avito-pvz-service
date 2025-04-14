@@ -34,7 +34,7 @@ func LoadConfig() *Config {
 			DBPassword: getEnv("DB_PASSWORD", "postgres"),
 			DBName:     getEnv("DB_NAME", "pvz"),
 			JWTSecret:  getEnv("JWT_SECRET", "supersecretkey"),
-			LogLevel:   getEnv("LogLevel", "info"),
+			LogLevel:   getEnv("LOG_LEVEL", "debug"),
 		}
 	}
 
@@ -45,7 +45,7 @@ func LoadConfig() *Config {
 		DBPassword: getEnv("DB_PASSWORD", "postgres"),
 		DBName:     getEnv("DB_NAME", "pvz"),
 		JWTSecret:  getEnv("JWT_SECRET", "supersecretkey"),
-		LogLevel:   getEnv("LogLevel", "info"),
+		LogLevel:   getEnv("LOG_LEVEL", "debug"),
 	}
 }
 

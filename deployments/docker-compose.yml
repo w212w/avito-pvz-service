@@ -9,6 +9,7 @@ services:
       container_name: avito-pvz-service
       ports:
         - "8080:8080"
+        - "3000:3000"
       environment:
         - APP_ENV=docker
         - DB_PORT=5432
@@ -16,6 +17,8 @@ services:
         - DB_PASSWORD=postgres
         - DB_NAME=pvz
         - DB_HOST=db
+        - LOG_LEVEL=debug
+        - JWT_SECRET=supersecretkey
         - SERVER_PORT=8080
       depends_on:
         db:
