@@ -51,7 +51,7 @@ docker-compose up -d db
 go test ./...
 go test -cover  ./...
 ```
-**Результаты тестов:**
+**Результаты тестов:** <br>
 ok      avito-pvz-service/internal/handlers     1.060s  coverage: 79.9% of statements
 
 ok      avito-pvz-service/internal/services     1.543s  coverage: 79.5% of statements
